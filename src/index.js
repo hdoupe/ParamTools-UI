@@ -37,13 +37,21 @@ class Param extends React.Component {
   }
 
   handleNameChange(e) {
-    this.setState({name: e.target.value});
-    this.props.handleParamsChange({[this.state.name]: this.state.value});
+    console.log("name change bef: " + JSON.stringify(this.state));
+    this.setState(
+      {name: e.target.value},
+      () => this.props.handleParamChange(this.props.value, {[this.state.name]: this.state.value})
+    );
+    console.log("name change aft: " + JSON.stringify(this.state));
   }
 
   handleValueChange(value) {
-    this.setState({value});
-    this.props.handleParamsChange({[this.state.name]: this.state.value});
+    console.log("value change bef: " + JSON.stringify(this.state) + " " + value);
+    this.setState(
+      {value},
+      () => this.props.handleParamChange(this.props.value, {[this.state.name]: this.state.value})
+    );
+    console.log("value change aft: " + JSON.stringify(this.state) + " " + value);
   }
 
   render() {
@@ -52,7 +60,7 @@ class Param extends React.Component {
     return (
       <fieldset>
         <label>
-          Parameter Name:
+          Parameter Name {this.props.value}:
           <input type="text" name="name" value={name} onChange={this.handleNameChange} />
         </label>
         <Value handleValueChange={this.handleValueChange} value={value}/>
@@ -66,19 +74,22 @@ class Schema extends React.Component {
     super(props);
     this.state = {
       schemaName: "",
-      params: {},
+      params: [],
     };
     this.handleSchemaNameChange = this.handleSchemaNameChange.bind(this);
-    this.handleParamsChange = this.handleParamsChange.bind(this);
+    this.handleParamChange = this.handleParamChange.bind(this);
   }
 
   handleSchemaNameChange(e) {
     this.setState({schemaName: e.target.value});
   }
 
-  handleParamsChange(params) {
-    var newparams = Object.assign(this.state.params, params);
-    this.setState({params: newparams});
+  handleParamChange(i, param) {
+    var params = this.state.params;
+    params[i] = param;
+    console.log("bef: " + JSON.stringify(params))
+    this.setState({params: params});
+    console.log("aft: " + JSON.stringify(this.state.params));
   }
 
   render() {
@@ -86,7 +97,7 @@ class Schema extends React.Component {
     const paramstring = JSON.stringify(this.state.params);
     return (
       <fieldset>
-        <h1>paramTools UI</h1>
+        <h1>ParamTools UI</h1>
         <label>
         Schema Name:
         <input
@@ -96,8 +107,8 @@ class Schema extends React.Component {
           onChange={this.handleSchemaNameChange} />
         </label>
         <p>{paramstring}</p>
-        <Param handleParamsChange={this.handleParamsChange}/>
-        <Param handleParamsChange={this.handleParamsChange}/>
+        <Param handleParamChange={this.handleParamChange} value="0"/>
+        <Param handleParamChange={this.handleParamChange} value="1"/>
       </fieldset>
     );
   }
