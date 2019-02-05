@@ -13,7 +13,7 @@ class Value extends React.Component {
   }
 
   render() {
-    const value = this.props.value;
+    const value = this.props.valueobject["value"];
     return (
       <fieldset>
         <label> Value:
@@ -29,29 +29,25 @@ class Param extends React.Component {
     super(props);
     this.state = {
       name: '',
-      value: '',
+      value: {value: ''},
     };
-
+    console.log("key " + this.props.ix);
     this.handleNameChange = this.handleNameChange.bind(this);
     this.handleValueChange = this.handleValueChange.bind(this);
   }
 
   handleNameChange(e) {
-    console.log("name change bef: " + JSON.stringify(this.state));
     this.setState(
       {name: e.target.value},
-      () => this.props.handleParamChange(this.props.value, {[this.state.name]: this.state.value})
+      () => this.props.handleParamChange(this.props.ix, this.state)
     );
-    console.log("name change aft: " + JSON.stringify(this.state));
   }
 
   handleValueChange(value) {
-    console.log("value change bef: " + JSON.stringify(this.state) + " " + value);
     this.setState(
-      {value},
-      () => this.props.handleParamChange(this.props.value, {[this.state.name]: this.state.value})
+      {value: {value: value}},
+      () => this.props.handleParamChange(this.props.ix, this.state)
     );
-    console.log("value change aft: " + JSON.stringify(this.state) + " " + value);
   }
 
   render() {
@@ -60,10 +56,10 @@ class Param extends React.Component {
     return (
       <fieldset>
         <label>
-          Parameter Name {this.props.value}:
+          Parameter Name {this.props.ix}:
           <input type="text" name="name" value={name} onChange={this.handleNameChange} />
         </label>
-        <Value handleValueChange={this.handleValueChange} value={value}/>
+        <Value handleValueChange={this.handleValueChange} valueobject={value}/>
       </fieldset>
     );
   }
@@ -72,12 +68,17 @@ class Param extends React.Component {
 class Schema extends React.Component {
   constructor(props) {
     super(props);
+    this.handleSchemaNameChange = this.handleSchemaNameChange.bind(this);
+    this.handleParamChange = this.handleParamChange.bind(this);
+    this.handleAddParam = this.handleAddParam.bind(this);
     this.state = {
       schemaName: "",
       params: [],
+      paramitems: [
+        <Param handleParamChange={this.handleParamChange} ix="0" key="0"/>,
+        <Param handleParamChange={this.handleParamChange} ix="1" key="1"/>,
+      ],
     };
-    this.handleSchemaNameChange = this.handleSchemaNameChange.bind(this);
-    this.handleParamChange = this.handleParamChange.bind(this);
   }
 
   handleSchemaNameChange(e) {
@@ -87,14 +88,29 @@ class Schema extends React.Component {
   handleParamChange(i, param) {
     var params = this.state.params;
     params[i] = param;
-    console.log("bef: " + JSON.stringify(params))
     this.setState({params: params});
-    console.log("aft: " + JSON.stringify(this.state.params));
+  }
+
+  handleAddParam(e) {
+    this.setState((state, props) => {
+      const n = this.state.paramitems.length;
+      let paramitems = this.state.paramitems;
+      paramitems.push(
+        <Param handleParamChange={this.handleParamChange} ix={n} key={n.toString()}/>
+      );
+      return {
+        paramitems: paramitems,
+      };
+    });
+    console.log(this.state.paramitems);
+    console.log("length: " + this.state.paramitems.length);
   }
 
   render() {
     const schemaName = this.state.schemaName;
-    const paramstring = JSON.stringify(this.state.params);
+    const paramstring = JSON.stringify(this.state.params, null, 4);
+    let paramitems = this.state.paramitems;
+    console.log("param length: " + paramitems.length);
     return (
       <fieldset>
         <h1>ParamTools UI</h1>
@@ -106,9 +122,9 @@ class Schema extends React.Component {
           value={schemaName}
           onChange={this.handleSchemaNameChange} />
         </label>
-        <p>{paramstring}</p>
-        <Param handleParamChange={this.handleParamChange} value="0"/>
-        <Param handleParamChange={this.handleParamChange} value="1"/>
+        <pre><code className="jsonparams">{paramstring}</code></pre>
+        {paramitems}
+        <button onClick={this.handleAddParam}>Add Parameter</button>
       </fieldset>
     );
   }
