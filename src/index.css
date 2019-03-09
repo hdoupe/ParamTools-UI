@@ -7,3 +7,13 @@
 fieldset {
   border: 0;
 }
+
+.html, body {
+  height:100%;
+}
+/* #main-row {
+  height:100%;
+} */
+.fullheightcol {
+  height: 100%;
+}

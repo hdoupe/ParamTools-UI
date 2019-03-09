@@ -1,139 +1,86 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+import "./index.css";
 
-class Value extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleChange = this.handleChange.bind(this)
-  }
+const inputStyle = {
+  width: "50rem"
+};
 
-  handleChange(e) {
-    this.props.handleValueChange(e.target.value)
-  }
+export const Message = ({ msg }) => (
+  <small className="has-text-danger has-text-weight-light">{msg}</small>
+);
 
-  render() {
-    const value = this.props.valueobject["value"];
-    return (
-      <fieldset>
-        <label> Value:
-          <input value={value} onChange={this.handleChange}/>
-        </label>
-      </fieldset>
-    );
-  }
-}
+export const TextField = ({ field, form: { touched, errors }, ...props }) => {
+  return (
+    <div className="field">
+      <label className="label">{props.label}:</label>
+      <div className="control">
+        <input className="input" {...field} {...props} style={inputStyle} />
+      </div>
+    </div>
+  );
+};
 
-class Param extends React.Component {
+var Schema = Yup.object().shape({
+  name: Yup.string().required("Name is required.")
+});
+
+class ParamForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: '',
-      value: {value: ''},
+      initialValues: this.props.initialValues
     };
-    console.log("key " + this.props.ix);
-    this.handleNameChange = this.handleNameChange.bind(this);
-    this.handleValueChange = this.handleValueChange.bind(this);
-  }
-
-  handleNameChange(e) {
-    this.setState(
-      {name: e.target.value},
-      () => this.props.handleParamChange(this.props.ix, this.state)
-    );
-  }
-
-  handleValueChange(value) {
-    this.setState(
-      {value: {value: value}},
-      () => this.props.handleParamChange(this.props.ix, this.state)
-    );
   }
 
   render() {
-    const name = this.state.schemaName;
-    const value = this.state.value;
     return (
-      <fieldset>
-        <label>
-          Parameter Name {this.props.ix}:
-          <input type="text" name="name" value={name} onChange={this.handleNameChange} />
-        </label>
-        <Value handleValueChange={this.handleValueChange} valueobject={value}/>
-      </fieldset>
+      <div className="centered">
+        <Formik
+          initialValues={this.state.initialValues}
+          onSubmit={(values, actions) => {
+            console.log(values, actions);
+            alert(JSON.stringify(values));
+          }}
+          validationSchema={Schema}
+          render={({ props }) => (
+            <Form>
+              <p>{props && JSON.stringify(props.values)}</p>
+              <div>
+                <Field
+                  type="text"
+                  name="name"
+                  component={TextField}
+                  label="Schema name"
+                  placeholder="Name of the schema"
+                />
+                <div>
+                  <ErrorMessage
+                    name="name"
+                    render={msg => <Message msg={msg} />}
+                  />
+                </div>
+              </div>
+            </Form>
+          )}
+        />
+      </div>
     );
   }
 }
 
-class Schema extends React.Component {
+class App extends React.Component {
   constructor(props) {
     super(props);
-    this.handleSchemaNameChange = this.handleSchemaNameChange.bind(this);
-    this.handleParamChange = this.handleParamChange.bind(this);
-    this.handleAddParam = this.handleAddParam.bind(this);
-    this.state = {
-      schemaName: "",
-      params: [],
-      paramitems: [
-        <Param handleParamChange={this.handleParamChange} ix="0" key="0"/>,
-        <Param handleParamChange={this.handleParamChange} ix="1" key="1"/>,
-      ],
-    };
-  }
-
-  handleSchemaNameChange(e) {
-    this.setState({schemaName: e.target.value});
-  }
-
-  handleParamChange(i, param) {
-    var params = this.state.params;
-    params[i] = param;
-    this.setState({params: params});
-  }
-
-  handleAddParam(e) {
-    this.setState((state, props) => {
-      const n = this.state.paramitems.length;
-      let paramitems = this.state.paramitems;
-      paramitems.push(
-        <Param handleParamChange={this.handleParamChange} ix={n} key={n.toString()}/>
-      );
-      return {
-        paramitems: paramitems,
-      };
-    });
-    console.log(this.state.paramitems);
-    console.log("length: " + this.state.paramitems.length);
   }
 
   render() {
-    const schemaName = this.state.schemaName;
-    const paramstring = JSON.stringify(this.state.params, null, 4);
-    let paramitems = this.state.paramitems;
-    console.log("param length: " + paramitems.length);
-    return (
-      <fieldset>
-        <h1>ParamTools UI</h1>
-        <label>
-        Schema Name:
-        <input
-          type="text"
-          name="name"
-          value={schemaName}
-          onChange={this.handleSchemaNameChange} />
-        </label>
-        <pre><code className="jsonparams">{paramstring}</code></pre>
-        {paramitems}
-        <button onClick={this.handleAddParam}>Add Parameter</button>
-      </fieldset>
-    );
+    return <ParamForm initialValues={{ name: "" }} />;
   }
 }
-
 
 // ========================================
 
-ReactDOM.render(
-  <Schema />,
-  document.getElementById('root')
-);
+ReactDOM.render(<App />, document.getElementById("root"));
